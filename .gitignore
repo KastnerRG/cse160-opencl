@@ -1,0 +1,37 @@
+# Ignore environment directories
+env/
+venv/
+conda_envs/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+vector_store/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore MacOS system files
+*.DS_Store
+
+# Ignore compiled C extensions
+*.so
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
+
+# Ignore node_modules
+node_modules/
+
+# Ignore LLM generated files
+generated_designs/
+
