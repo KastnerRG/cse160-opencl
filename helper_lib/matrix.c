@@ -25,14 +25,13 @@ cl_int LoadMatrix(const char *path, Matrix *matrix)
     matrix->shape[0] = rows;
     matrix->shape[1] = cols;
 
-    matrix->data = malloc(sizeof(float) * rows * cols);
+    matrix->data = malloc(sizeof(int) * rows * cols);
     if (!matrix->data) // Error mallocing matrix data
         return CL_OUT_OF_HOST_MEMORY;
 
     int n = 0;
-    while (fscanf(data_file, "%f", &(matrix->data[n++])) != EOF)
+    while (fscanf(data_file, "%d", &(matrix->data[n++])) != EOF)
         ;
-
     fclose(data_file);
 
     return CL_SUCCESS;
@@ -55,7 +54,7 @@ cl_int SaveMatrix(const char *path, Matrix *matrix)
     {
         for (int c = 0; c < cols; c++)
         {
-            if (fprintf(data_file, "%.2f ", roundf(matrix->data[cols * r + c] * 100) / 100) < -1)
+            if (fprintf(data_file, "%d ", matrix->data[cols * r + c]) < -1)
                 return CL_INVALID_VALUE; // Error parsing dimensions
         }
         fprintf(data_file, "\n");
@@ -77,9 +76,9 @@ cl_int CheckMatrix(Matrix *truth, Matrix *student)
     int count = truth->shape[0] * truth->shape[1];
     for (int i = 0; i < count; i++)
     {
-        float epsilon = fabs(truth->data[i]) * 0.1f;
-        float diff = fabs(truth->data[i] - student->data[i]);
-        if (diff > epsilon)
+        //float epsilon = fabs(truth->data[i]) * 0.1f;
+        int diff = truth->data[i] - student->data[i];
+        if (diff > 0)
         {
             printf("!!SOLUTION IS NOT CORRECT!!\n");
             return CL_INVALID_VALUE;
@@ -100,7 +99,7 @@ void PrintMatrix(Matrix *matrix)
     {
         for (int c = 0; c < cols; c++)
         {
-            printf("%.2f ", roundf(matrix->data[r * cols + c] * 100) / 100);
+            printf("%df ", matrix->data[r * cols + c]);
         }
         printf("\n");
     }

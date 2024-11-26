@@ -65,7 +65,7 @@ void OpenCLMatrixMultiply(Matrix *input0, Matrix *input1, Matrix *result)
     //@@ Copy memory to the GPU here
 
     // Set the arguments to our compute kernel
-    // __global const float *A, __global const float *B, __global float *C,
+    // __global const int *A, __global const int *B, __global int *C,
     // const unsigned int numARows, const unsigned int numAColumns,
     // const unsigned int numBRows, const unsigned int numBColumns,
     // const unsigned int numCRows, const unsigned int numCColumns
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     // Allocate the memory for the target.
     host_c.shape[0] = rows;
     host_c.shape[1] = cols;
-    host_c.data = (float *)malloc(sizeof(float) * host_c.shape[0] * host_c.shape[1]);
+    host_c.data = (int *)malloc(sizeof(int) * host_c.shape[0] * host_c.shape[1]);
 
     // Call your matrix multiply.
     OpenCLMatrixMultiply(&host_a, &host_b, &host_c);

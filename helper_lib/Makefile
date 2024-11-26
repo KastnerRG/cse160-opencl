@@ -23,7 +23,6 @@ all: helper_lib.a
 	$(CC) $(CFLAGS) -c -o $@ $^ $(INCFLAGS) $(LDFLAGS)
 
 helper_lib.a: $(OBJECTS)
-	ar rcs -o $@ $(OBJECTS)
-
+	ar rcs $@ $(OBJECTS)
 clean: 
 	rm -r $(OBJECTS) helper_lib.a

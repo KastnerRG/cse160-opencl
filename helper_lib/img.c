@@ -59,7 +59,7 @@ cl_int LoadImg(const char *path, Matrix* img)
     while (fgetc(fp) != '\n') ;
     //memory allocation for pixel data
     unsigned char* data = (unsigned char *)malloc(img->shape[0] * img->shape[1] * IMAGE_CHANNELS * sizeof(char));
-    img->data = (float *)malloc(img->shape[0] * img->shape[1] * IMAGE_CHANNELS * sizeof(float));
+    img->data = (int *)malloc(img->shape[0] * img->shape[1] * IMAGE_CHANNELS * sizeof(int));
 
     if (!data || !img->data) {
         fprintf(stderr, "Unable to allocate memory\n");
@@ -75,7 +75,7 @@ cl_int LoadImg(const char *path, Matrix* img)
     int count = img->shape[0] * img->shape[1] * 3;
     for (int i = 0; i < count; i++)
     {
-        img->data[i] = (float)data[i] / 255.0f;
+        img->data[i] = (int)data[i] / 255;
     }
 
     fclose(fp);
@@ -91,7 +91,7 @@ cl_int SaveImg(const char *path, Matrix* img)
 
     for (int i = 0; i < count; i++)
     {
-        data[i] = img->data[i] * 255.0f;
+        data[i] = img->data[i] * 255;
     }
 
     FILE *fp;
@@ -135,11 +135,11 @@ cl_int CheckImg(Matrix *truth, Matrix *student)
     int count = truth->shape[0] * truth->shape[1] * IMAGE_CHANNELS;
     for (int i = 0; i < count; i++)
     {
-        float epsilon = fabs(truth->data[i]) * 0.1f;
-        float diff = fabs(truth->data[i] - student->data[i]);
-        if (diff > epsilon)
+        // float epsilon = fabs(truth->data[i]) * 0.1f;
+        int diff = truth->data[i] - student->data[i];
+        if (diff > 0)
         {
-            printf("!!SOLUTION IS NOT CORRECT!! Expected: %0.2f, Found %0.2f at %d\n", truth->data[i], student->data[i], i);
+            printf("!!SOLUTION IS NOT CORRECT!! Expected: %d, Found %df at %d\n", truth->data[i], student->data[i], i);
             return CL_INVALID_VALUE;
         }
     }

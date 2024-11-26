@@ -15,33 +15,32 @@ matrix_sizes = [
     ((191, 19), (19, 241))
 ]
 
-# Function to generate input files with random float values
+# Function to generate input files with random int values
 def generate_input_files(folder_path: str, input_idx: int, size: Tuple[int, int]):
     rows, cols = size
 
-    input_values: List[List[float]] = []
+    input_values: List[List[int]] = []
     with open(os.path.join(folder_path, f'input{input_idx}.raw'), 'w') as file:
         file.write(f"# ({rows}, {cols})\n")
         for _ in range(rows):
             input_values.append([])
             for _ in range(cols):
-                value = random.uniform(-100, 100)
-                value = round(value, 2)
+                value = random.randint(-100, 100)
                 input_values[-1].append(value)
-                file.write(f"{value:.2f} ")
+                file.write(f"{value} ")
             file.write("\n")
 
     return input_values
 
-# Function to generate output file with sum of float values from input0 and input1
-def generate_output_file(folder_path: str, input_0: List[List[float]], input_1: List[List[float]]):
+# Function to generate output file with sum of int values from input0 and input1
+def generate_output_file(folder_path: str, input_0: List[List[int]], input_1: List[List[int]]):
     with open(os.path.join(folder_path, 'output.raw'), 'w') as file:
         rows = len(input_0)
         cols = len(input_1[0])
         ops = len(input_0[0])
 
         file.write(f"# ({rows}, {cols})\n")
-        output_values: List[List[float]] = []
+        output_values: List[List[int]] = []
         for row in range(rows):
             output_values.append([])
             for col in range(cols):
@@ -50,9 +49,8 @@ def generate_output_file(folder_path: str, input_0: List[List[float]], input_1: 
                 for i in range(ops):
                     sum_value += input_0[row][i] * input_1[i][col]
 
-                sum_value = round(sum_value, 2)
                 output_values[-1].append(sum_value)
-                file.write(f"{sum_value:.2f} ")
+                file.write(f"{sum_value} ")
             file.write("\n")
 
 # Create folders and generate files

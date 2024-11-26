@@ -1,4 +1,4 @@
-__kernel void vectorAdd(__global const float *a, __global const float *b,
-                        __global float *result, const unsigned int size) {
+__kernel void vectorAdd(__global const int *a, __global const int *b,
+                        __global int *result, const unsigned int size) {
   //@@ Insert code to implement vector addition here
 }
