@@ -36,6 +36,6 @@ node_modules/
 generated_designs/
 
 solution
-device_query
-raytracer_parallel
-raytracer_sequential
+PA1/device_query/device_query
+PA1/raytracer_parallel/raytracer_parallel
+PA1/raytracer_sequential/raytracer_sequential
