@@ -35,3 +35,7 @@ node_modules/
 # Ignore LLM generated files
 generated_designs/
 
+solution
+device_query
+raytracer_parallel
+raytracer_sequential
