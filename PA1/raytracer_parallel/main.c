@@ -40,13 +40,10 @@ int main(int argc, char *argv[]) {
     cl_int err;
 
     // Run kernel on CPU or GPU depending on command line arg
-    int device_choice = 0;
-    if (!strcmp(argv[1], "gpu")) { // GPU
-        device_choice = 0;
-    } else if (!strcmp(argv[1], "cpu")) { // CPU
-        device_choice = 1;
-    } else {
-        fprintf(stderr, "ERROR: Incorrect argument, must be cpu or gpu (e.g. make cpu)\n");
+    char* str_end;
+    int device_choice = strtol(argv[1], &str_end, 10);
+    if (*str_end != '\0') {
+        fprintf(stderr, "Invalid device id. Expected an integer. Received %s.\n", argv[1]);
         return 1;
     }
     err = clGetPlatformIDs(2, platform, &num_platforms);
