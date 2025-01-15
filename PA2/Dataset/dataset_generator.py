@@ -2,9 +2,9 @@ import os
 import random
 
 # Function to generate input files with random int values
-def generate_input_files(folder_path, folder_index):
+def generate_input_files(folder_path, folder_index, num_arrays=4):
     input_values = []
-    for i in range(2):
+    for i in range(num_arrays):
         with open(os.path.join(folder_path, f'input{i}.raw'), 'w') as file:
             N = folder_index ** 7 + 1
             input_values.append([])
@@ -17,12 +17,12 @@ def generate_input_files(folder_path, folder_index):
     return input_values
 
 # Function to generate output file with sum of float values from input0 and input1
-def generate_output_file(folder_path, input_values):
+def generate_output_file(folder_path, input_values, num_arrays=4):
     with open(os.path.join(folder_path, 'output.raw'), 'w') as file:
         N = input_values[0][0]
         file.write(f"# ({N}, 1)\n")
         for j in range(1, N+1):
-            sum_value = input_values[0][j] + input_values[1][j]
+            sum_value = sum(input_values[i][j] for i in range(num_arrays))
             file.write(f"{sum_value} ")
 
 # Create folders and generate files
