@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     strcpy(dir, dirname(strdup(input_file_a))); 
 
     // Host input and output vectors and sizes
-    Matrix host_a, host_c, answer;
+    Image host_a, host_c, answer;
     Matrix host_b;
     
     cl_int err;
