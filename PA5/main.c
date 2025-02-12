@@ -102,11 +102,11 @@ void OpenCLConvolution2D(Matrix *input0, Matrix *input1, Matrix *result, int str
     // Execute the OpenCL kernel on the array
 
 
-    //@@ Launch the GPU Kernel here
-
     //@@ Copy the GPU memory back to the CPU here
-
+    // Read the memory buffer output_mem_obj to the local variable result
+    
     //@@ Free the GPU memory here
+    // Release OpenCL resources
 }
 
 int main(int argc, char *argv[])
@@ -152,10 +152,6 @@ int main(int argc, char *argv[])
     //@@ Do not use the results from the answer image
     
     
-    if (stride > 0) {
-        rows = COMPUTE_OUTUT_DIM(host_a.shape[0], host_b.shape[0], stride);
-        cols = COMPUTE_OUTUT_DIM(host_a.shape[1], host_b.shape[1], stride);
-    }
     // Allocate the memory for the target.
     host_c.shape[0] = rows;
     host_c.shape[1] = cols;
