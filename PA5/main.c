@@ -21,7 +21,7 @@
 #define COMPUTE_OUTUT_DIM(input_dim, kernel_size, stride) \
     ((input_dim - kernel_size) / stride + 1)
 
-void OpenCLConvolution2D(Matrix *input0, Matrix *input1, Matrix *result, int stride)
+void OpenCLConvolution2D(Image *input0, Matrix *input1, Image *result, int stride)
 {
     // Load external OpenCL kernel code
     char *kernel_source = OclLoadKernel(KERNEL_PATH); // Load kernel source
