@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <libgen.h>
+#include <string.h>
 
 #include "device.h"
 #include "kernel.h"
@@ -15,7 +18,10 @@
 
 #define KERNEL_PATH "kernel.cl"
 
-void OpenCLConvolution2D(Matrix *input0, Matrix *input1, Matrix *result)
+#define COMPUTE_OUTUT_DIM(input_dim, kernel_size, stride) \
+    ((input_dim - kernel_size) / stride + 1)
+
+void OpenCLConvolution2D(Matrix *input0, Matrix *input1, Matrix *result, int stride)
 {
     // Load external OpenCL kernel code
     char *kernel_source = OclLoadKernel(KERNEL_PATH); // Load kernel source
@@ -84,8 +90,17 @@ void OpenCLConvolution2D(Matrix *input0, Matrix *input1, Matrix *result)
     int imageChannels = IMAGE_CHANNELS;
     err |= clSetKernelArg(kernel, 6, sizeof(unsigned int), &imageChannels);
     CHECK_ERR(err, "clSetKernelArg 6");
+    err |= clSetKernelArg(kernel, 7, sizeof(unsigned int), &stride);
+    CHECK_ERR(err, "clSetKernelArg 7");
 
+    // Compute the output dim 
     // @@ define local and global work sizes
+    // Execute the OpenCL kernel on the list
+    
+    
+    //@@ Launch the GPU Kernel here
+    // Execute the OpenCL kernel on the array
+
 
     //@@ Launch the GPU Kernel here
 
@@ -107,36 +122,53 @@ int main(int argc, char *argv[])
     const char *input_file_c = argv[3];
     const char *input_file_d = argv[4];
 
+    // get the dir from the input file
+    int stride;
+    char dir[256];
+    strcpy(dir, dirname(strdup(input_file_a))); 
+
     // Host input and output vectors and sizes
-    Matrix host_a, host_b, host_c, answer;
+    Matrix host_a, host_c, answer;
+    Matrix host_b;
     
     cl_int err;
 
-    err = LoadImg(input_file_a, &host_a);
+    err = LoadImgRaw(input_file_a, &host_a);
     CHECK_ERR(err, "LoadImg");
 
     err = LoadMatrix(input_file_b, &host_b);
     CHECK_ERR(err, "LoadMatrix");
 
-    err = LoadImg(input_file_c, &answer);
+    // err = LoadImgTmp(input_file_c, &answer);
+    err = LoadImgRaw(input_file_c, &answer);
     CHECK_ERR(err, "LoadImg");
+
+    // Load stride
+    err = LoadStride(dir, &stride);
+    CHECK_ERR(err, "LoadStride");
 
     int rows, cols;
     //@@ Update these values for the output rows and cols of the output
     //@@ Do not use the results from the answer image
-
+    
+    
+    if (stride > 0) {
+        rows = COMPUTE_OUTUT_DIM(host_a.shape[0], host_b.shape[0], stride);
+        cols = COMPUTE_OUTUT_DIM(host_a.shape[1], host_b.shape[1], stride);
+    }
     // Allocate the memory for the target.
     host_c.shape[0] = rows;
     host_c.shape[1] = cols;
-    host_c.data = (float *)malloc(sizeof(float) * host_c.shape[0] * host_c.shape[1] * IMAGE_CHANNELS);
+    host_c.data = (int *)malloc(sizeof(int) * host_c.shape[0] * host_c.shape[1] * IMAGE_CHANNELS);
 
-    OpenCLConvolution2D(&host_a, &host_b, &host_c);
+    OpenCLConvolution2D(&host_a, &host_b, &host_c, stride);
 
     // Save the image
     SaveImg(input_file_d, &host_c);
 
     // Check the result of the convolution
-    CheckImg(&answer, &host_c);
+    err = CheckImg(&answer, &host_c);
+    CHECK_ERR(err, "CheckImg");
 
     // Release host memory
     free(host_a.data);
