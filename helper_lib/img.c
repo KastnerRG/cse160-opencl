@@ -84,7 +84,7 @@ cl_int LoadImg(const char *path, Matrix* img)
     return CL_SUCCESS;
 }
 
-cl_int LoadImgRaw(const char *path, Image* img)
+cl_int LoadImgRaw(const char *path, Matrix* img)
 {
     FILE *data_file;
 
