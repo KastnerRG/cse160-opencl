@@ -21,17 +21,23 @@ solution: ../helper_lib/helper_lib.a main.c
 	cd ../helper_lib; make
 
 run: solution
-	./solution Dataset/0/input0.ppm Dataset/0/input1.raw Dataset/0/output.ppm output.ppm
-	./solution Dataset/1/input0.ppm Dataset/1/input1.raw Dataset/1/output.ppm output.ppm
-	./solution Dataset/2/input0.ppm Dataset/2/input1.raw Dataset/2/output.ppm output.ppm
-	./solution Dataset/3/input0.ppm Dataset/3/input1.raw Dataset/3/output.ppm output.ppm
-	./solution Dataset/4/input0.ppm Dataset/4/input1.raw Dataset/4/output.ppm output.ppm
-	./solution Dataset/5/input0.ppm Dataset/5/input1.raw Dataset/5/output.ppm output.ppm
-	./solution Dataset/6/input0.ppm Dataset/6/input1.raw Dataset/6/output.ppm output.ppm
-	./solution Dataset/7/input0.ppm Dataset/7/input1.raw Dataset/7/output.ppm output.ppm
-	./solution Dataset/8/input0.ppm Dataset/8/input1.raw Dataset/8/output.ppm output.ppm
-	./solution Dataset/9/input0.ppm Dataset/9/input1.raw Dataset/9/output.ppm output.ppm
-	
+	@for i in `seq 0 15`; do \
+		echo "Running test $$i"; \
+		./solution Dataset/without_strides/$$i/input0.raw Dataset/without_strides/$$i/kernel0.raw Dataset/without_strides/$$i/output.raw output.raw; \
+	done
+
+with_stride: solution
+	@for i in `seq 0 37`; do \
+		echo "Running test $$i"; \
+		./solution Dataset/with_strides/$$i/input0.raw Dataset/with_strides/$$i/kernel0.raw Dataset/with_strides/$$i/output.raw output.raw; \
+	done
+
+time: solution
+	python3 ../utils/profile.py --args ./solution Dataset/without_strides/15/input0.raw Dataset/without_strides/15/kernel0.raw Dataset/without_strides/15/output.raw output.raw
+
+time_with_stride: solution
+	python3 ../utils/profile.py --args ./solution Dataset/with_strides/37/input0.raw Dataset/with_strides/37/kernel0.raw Dataset/with_strides/37/output.raw output.raw
+
 clean: 
 	rm -f solution
 	cd ../helper_lib; make clean
