@@ -1,5 +1,4 @@
-
-# Programming Assignment 7: CNN Forward Layer GPU Implementation
+# Programming Assignment 6: CNN Forward Layer GPU Implementation
 
 ## Objective
 
@@ -22,7 +21,9 @@ The network will be tested on the [Fashion MNIST dataset](https://github.com/zal
 ## Instructions
 
 This assignment requires you to complete a GPU implementation of the convolutional layer. Performance of the GPU implementation is not important as this assignment is intended to build functionality before optimizing. The only file you need to update to implement the forward convolution is:
-`src/layer/custom/new-forward.cu`. To understand which functions within `new-forward.cu` are being called and when, it may be helpful ot refer to `src/layer/conv_cust.cc`.
+`cnn/src/layer/custom/new-forward-kernel.cl`.
+
+ To understand which functions within `new-forward-kernel.cl` are being called and when, it may be helpful ot refer to `cnn/src/layer/custom/gpu.cc`.
 
 Again, you are performing the following operation:
 ```{.ruby}
@@ -45,23 +46,25 @@ This animation can help visualize this process better:
 
 ## How to Compile
 
-The `src/layer/custom/new-forward.cu` file contains the code for the programming assignment. There is a Makefile included which compiles it and links it with the libgputk CUDA library automatically. It can be run by typing `make m2` from the PA7 folder. It generates a `m2` output executable.
+The `cnn/src/layer/custom/new-forward-kernel.cl` file contains the code for the programming assignment. There is a Makefile included which compiles it and links it with the libgputk CUDA library automatically. It can be run by typing `make gpu` from the PA6 folder. It generates a `m2` output executable.
 
 ## How to test
 
-Use the `make run` command to test your program which will run your program on a batch size of 1000 images. This will automatically compile your source (equivilent to executing `make m2` and then running `./m2 1000`).
+Use the `make gpu` command to test your program which will run your program on a batch size of 1000 images on GPU. The command will print out the run time and accuracy. To test your program on CPU, use the command `make cpu`.
 
 ## Test Output 
 
 You will need to checkout a GPU for this assignment, but please avoid editing while accessing a device. You can accomplish this with:
-`launch.sh -g 1 -s -i ghcr.io/ucsd-ets/nvcr-cuda:main`
+`launch.sh -g 1 -s -i ghcr.io/ucsd-ets/cse160-notebook:main -W CSE160_WI25_A00 -P Always`
 
 The accuracy of your implementation should meet the 0.886 that our implementation does.
 
 ## Submission
 
-Submit the src/layer/custom/new-forward.cu file on gradescope.
+Submit the `PA6/cnn/src/layer/custom/new-forward-kernel.cl` file on gradescope.
 
 ## Credit
 
 This project is originally from UIUC ECE408 and builds off a number of open source projects including the Fashion MNIST dataset, mini-dnn-cpp, and the Eigen project.
+
+
