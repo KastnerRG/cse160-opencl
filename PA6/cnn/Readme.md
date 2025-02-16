@@ -46,7 +46,7 @@ This animation can help visualize this process better:
 
 ## How to Compile
 
-The `cnn/src/layer/custom/new-forward-kernel.cl` file contains the code for the programming assignment. There is a Makefile included which compiles it and links it with the libgputk CUDA library automatically. It can be run by typing `make gpu` from the PA6 folder. It generates a `m2` output executable.
+The `cnn/src/layer/custom/new-forward-kernel.cl` file contains the code for the programming assignment. It can be run by typing `make gpu` from the PA6 folder. It generates a `m2` output executable.
 
 ## How to test
 
