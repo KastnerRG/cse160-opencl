@@ -2,7 +2,7 @@
 
 ## Objective
 
-This is the second part of a three part project implementing and optimizing the forward pass of a convolution layer using CUDA. Convolutional layers are the primary building blocks of convolutional neural networks (CNNs), which are used for tasks like image classification, object detection, natural language processing and recommendation systems. 
+This is the second part of a three part project implementing and optimizing the forward pass of a convolution layer using OpenCL. Convolutional layers are the primary building blocks of convolutional neural networks (CNNs), which are used for tasks like image classification, object detection, natural language processing and recommendation systems. 
 
 You will be working with a modified version of the LeNet5 architceture shown bellow:
 
@@ -12,7 +12,7 @@ You can read about the original network:
 
 *Source: http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf*
 
-Your optimized CUDA implementation of the convolutional layer will be used to perform inference for layers C1 and C3 (shown in red) in the figure above. This leverages the [mini-dnn-cpp](https://github.com/iamhankai/mini-dnn-cpp) (Mini-DNN) framework for implementing the modified LeNet-5.
+Your optimized OpenCL implementation of the convolutional layer will be used to perform inference for layers C1 and C3 (shown in red) in the figure above. This leverages the [mini-dnn-cpp](https://github.com/iamhankai/mini-dnn-cpp) (Mini-DNN) framework for implementing the modified LeNet-5.
 
 ## Input Data
 
