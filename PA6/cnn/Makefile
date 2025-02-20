@@ -1,10 +1,7 @@
 CC       = g++
-CFLAGS   = -g -Wall 
+CFLAGS   = -g -Wall
 INCFLAGS := -I../../helper_lib -I.
 LDFLAGS  := ../../helper_lib/*.o -lm
-
-# Suppress Unused variable warning messages
-CFLAGS += -Wno-unused-variable -Wno-reorder -Wno-sign-compare -Wno-unused-command-line-argument 
 
 ifeq ($(shell uname -o), Darwin)
 	LDFLAGS += -framework OpenCL
@@ -84,7 +81,7 @@ loss.sentinel:           src/loss/cross_entropy_loss.cc src/loss/mse_loss.cc
 
 clean:
 		find . -name "*.o" -type f -delete
-		rm -f *.sentinel
+		rm *.sentinel
 		rm m2 || true
 		rm m1 || true
 		cd ../../helper_lib; make clean
@@ -95,3 +92,6 @@ cpu:		m1
 
 gpu: 		m2
 		./m2 1000
+
+time: 		m2
+		python3 ../../utils/profile.py  --args ./m2 1000
