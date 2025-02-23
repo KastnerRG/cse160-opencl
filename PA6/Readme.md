@@ -2,7 +2,7 @@
 
 ## Objective
 
-This is the second part of a three part project implementing and optimizing the forward pass of a convolution layer using OpenCL. Convolutional layers are the primary building blocks of convolutional neural networks (CNNs), which are used for tasks like image classification, object detection, natural language processing and recommendation systems. 
+In this programming assignment, you will be implementing and optimizing the forward pass of a convolution layer using OpenCL. Convolutional layers are the primary building blocks of convolutional neural networks (CNNs), which are used for tasks like image classification, object detection, natural language processing and recommendation systems. 
 
 You will be working with a modified version of the LeNet5 architceture shown bellow:
 
@@ -20,8 +20,8 @@ The network will be tested on the [Fashion MNIST dataset](https://github.com/zal
 
 ## Instructions
 
-This assignment requires you to complete a GPU implementation of the convolutional layer. Performance of the GPU implementation is not important as this assignment is intended to build functionality before optimizing. The only file you need to update to implement the forward convolution is:
-`cnn/src/layer/custom/new-forward-kernel.cl`.
+This assignment requires you to complete a GPU implementation of the convolutional layer. You should first try to build a solution that is functionally correct and then move on to optimizing it. The only files you need to update to implement the forward convolution are
+`cnn/src/layer/custom/new-forward-kernel.cl` and `cnn/src/layer/custom/new-forward.cc`.
 
  To understand which functions within `new-forward-kernel.cl` are being called and when, it may be helpful ot refer to `cnn/src/layer/custom/gpu.cc`.
 
@@ -46,11 +46,11 @@ This animation can help visualize this process better:
 
 ## How to Compile
 
-The `cnn/src/layer/custom/new-forward-kernel.cl` file contains the code for the programming assignment. It can be run by typing `make gpu` from the PA6 folder. It generates a `m2` output executable.
+The `cnn/src/layer/custom/new-forward-kernel.cl` file contains the kernel for the programming assignment and the setup is done in `cnn/src/layer/custom/new-forward.cc`. Running `make m2` should produce an executable and you can execute by running `./m2 1000`, which would output the accuracy of the model.
 
 ## How to test
 
-Use the `make gpu` command to test your program which will run your program on a batch size of 1000 images on GPU. The command will print out the run time and accuracy. To test your program on CPU, use the command `make cpu`.
+Use the `make gpu` command to test your program which will run your program on a batch size of 1000 images on GPU. The command will print out the accuracy, which should be 0.886. Further, running `make time` will time your kernel and output the time in milliseconds by taking the average across 10 runs.
 
 ## Test Output 
 
@@ -61,7 +61,7 @@ The accuracy of your implementation should meet the 0.886 that our implementatio
 
 ## Submission
 
-Submit the `PA6/cnn/src/layer/custom/new-forward-kernel.cl` file on gradescope.
+Submit the `PA6/cnn/src/layer/custom/new-forward-kernel.cl` and `cnn/src/layer/custom/new-forward.cc` on gradescope.
 
 ## Credit
 
