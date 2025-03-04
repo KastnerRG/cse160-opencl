@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -64,6 +68,19 @@ typedef struct _OclPlatformProp
 cl_int OclGetDeviceWithFallback(cl_device_id* device_id, cl_device_type device_type);
 
 /**
+ * @brief Finds an OpenCL device matching the specified type.  Falls back to the first returned device if there are no devices of the specified type returned.
+ * This function returns CL_DEVICE_NOT_FOUND if no platforms are found.  Internally, OclFindPlatforms is called.
+ * 
+ * @param device_id A pointer to the block of memory to store the device ID for the specified device type or Fallback device.
+ * @param platform_index A pointer to the block of memory to store the platform index for the specified device type or fallback device.
+ * @param device_index A pointer to the block of memory to store teh device index for the specified device type or fallback device.
+ * @param device_type The type of device to look for.
+ * 
+ * @return CL_SUCCESS if a valid device is found.  An error otherwise.
+ */
+cl_int OclGetDeviceInfoWithFallback(cl_device_id* device_id, int* platform_index, int* device_index, cl_device_type device_type);
+
+/**
  * @brief Finds all OpenCL platforms and devices, and get their respective properties.
  * Internally calls OclFindDevices.
  * The caller is responsible for freeing *platforms.
@@ -115,3 +132,7 @@ cl_int OclFreePlatformProp(OclPlatformProp *platform);
  * @return CL_SUCCESS if and only if struct is successfully freed.
  */
 cl_int OclFreeDeviceProp(OclDeviceProp *device);
+
+#ifdef __cplusplus
+}
+#endif
