@@ -5,19 +5,19 @@
 #include <CL/cl.h>
 #endif
 #include <time.h>
+#include "opencl_setup.h"
+#include <stdlib.h>
 
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "lib/stb_image_write.h"
-
-const cl_int IMG_SIZE = 1024;
-const size_t GLOBAL_SIZE = IMG_SIZE * IMG_SIZE;
-const size_t LOCAL_SIZE = 32;
-const float FOV = 3.14159265359/3.0;
-
+/* 
+ * OpenCL utilization for GPU parallelization
+ * Sections to fill in will be lead by a:
+ * // TODO: 
+ *
+ * Reference guide for OpenCL functions can be found here: https://www.khronos.org/files/opencl30-reference-guide.pdf
+*/
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "ERROR: Incorrect usage! Example usage: make gpu\n");
+        fprintf(stderr, "ERROR: Incorrect usage! Example usage: ./raytracer_parallel <device index>\n");
         return 1;
     }
     // Time measurement variables
@@ -46,7 +46,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Invalid device id. Expected an integer. Received %s.\n", argv[1]);
         return 1;
     }
+    
     err = clGetPlatformIDs(2, platform, &num_platforms);
+    if (device_choice >= num_platforms) {
+        fprintf(stderr, "Invalid device choice %d. Only %u platforms available.\n", device_choice, num_platforms);
+        return 1;
+    }
     err |= clGetDeviceIDs(platform[device_choice], CL_DEVICE_TYPE_ALL, 1, &device, &num_devices);
 
     printf("\n========================================================\n");
@@ -66,19 +71,11 @@ int main(int argc, char *argv[]) {
     }
 
     // Create command queue
-    queue = clCreateCommandQueue(context, device, 0, &err);
+    cl_queue_properties properties[] = {0};
+    queue = clCreateCommandQueueWithProperties(context, device, properties, &err);
     if (err != CL_SUCCESS) {
         fprintf(stderr, "Error creating queue\n");
         return 1;
-    }
-
-    // Create memory buffer for output
-    size_t pixel_size = IMG_SIZE * IMG_SIZE * 3 * sizeof(unsigned char);
-    unsigned char pixels_h[IMG_SIZE * IMG_SIZE * 3];
-
-    cl_mem pixels_d = clCreateBuffer(context, CL_MEM_WRITE_ONLY, pixel_size, NULL, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error creating pixels_d\n");
     }
 
     // Read kernel and instantiate it
@@ -147,49 +144,20 @@ int main(int argc, char *argv[]) {
     }
 
 
-    cl_float half_height = tan(FOV * 0.5);
+    // Implemented Function (find in opencl_setup.c)
+    runKernel(context, kernel, queue, program, kernelSrc, device_choice);
 
-    // Set kernel arguments
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &pixels_d);
-    err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &IMG_SIZE);
-    err |= clSetKernelArg(kernel, 2, sizeof(cl_float), &half_height);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error setting kernel arguments\n");
-    }
+    // Stop measuring host execution time
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000; // Convert to milliseconds
 
-    // Execute kernel on data
-    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &GLOBAL_SIZE, &LOCAL_SIZE, 0, NULL, NULL);
-
-    // Wait for kernel to finish
-    clFinish(queue);
-
-    // Read pixels results from device
-    clEnqueueReadBuffer(queue, pixels_d, CL_TRUE, 0, pixel_size, pixels_h, 0, NULL, NULL);
-
-    // Save the result to a PNG file
+    // Get output
     char* out_img_name;
     if (device_choice == 0) {
         out_img_name = "output_gpu.png";
     } else {
         out_img_name = "output_cpu.png";
     }
-    stbi_write_png(out_img_name, IMG_SIZE, IMG_SIZE, 3, pixels_h, IMG_SIZE * 3);
-
-    // Release OpenCL resources
-    clReleaseMemObject(pixels_d);
-
-    clReleaseKernel(kernel);
-    clReleaseProgram(program);
-    clReleaseCommandQueue(queue);
-    clReleaseContext(context);
-
-
-    // Free memory allocated to kernel source
-    free(kernelSrc);
-
-    // Stop measuring host execution time
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000; // Convert to milliseconds
 
     printf("Total execution time (host + kernel): %.3f ms\n", cpu_time_used);
     printf("Image titled %s has been created/modified and can now be viewed!\n", out_img_name);
