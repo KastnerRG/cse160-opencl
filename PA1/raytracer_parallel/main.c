@@ -5,11 +5,26 @@
 #include <CL/cl.h>
 #endif
 #include <time.h>
+#include <string.h>
 
+//helper_lib 
+#include "device.h"
+#include "kernel.h"
+#include "matrix.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define KERNEL_PATH "kernel.cl"
 #include "lib/stb_image_write.h"
 
+//@@ TODO:: Better error Function
+#define CHECK_ERR(err, msg)                           \
+    if (err != CL_SUCCESS)                            \
+    {                                                 \
+        fprintf(stderr, "%s failed: %d\n", msg, err); \
+        exit(EXIT_FAILURE);                           \
+    }
+
+//@@ Hint: these might be useful
 const cl_int IMG_SIZE = 1024;
 const size_t GLOBAL_SIZE = IMG_SIZE * IMG_SIZE;
 const size_t LOCAL_SIZE = 32;
@@ -17,7 +32,7 @@ const float FOV = 3.14159265359/3.0;
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "ERROR: Incorrect usage! Example usage: make gpu\n");
+        fprintf(stderr, "ERROR: Incorrect usage! Example usage: make gpu / make cpu\n");
         return 1;
     }
     // Time measurement variables
@@ -27,130 +42,69 @@ int main(int argc, char *argv[]) {
     // Start measuring host execution time
     start = clock();
 
-    // OpenCL Initialization
-    cl_platform_id platform[10];
-    cl_device_id device;
-    cl_context context;
-    cl_command_queue queue;
-    cl_program program;
-    cl_kernel kernel;
-
-    // Get platform and GPU device on platform
-    cl_uint num_devices, num_platforms;
+    // Load external OpenCL kernel code
+    char *kernelSrc = OclLoadKernel(KERNEL_PATH); // Load kernel 
+    
     cl_int err;
 
-    // Run kernel on CPU or GPU depending on command line arg
-    char* str_end;
-    int device_choice = strtol(argv[1], &str_end, 10);
-    if (*str_end != '\0') {
-        fprintf(stderr, "Invalid device id. Expected an integer. Received %s.\n", argv[1]);
-        return 1;
-    }
-    err = clGetPlatformIDs(2, platform, &num_platforms);
-    err |= clGetDeviceIDs(platform[device_choice], CL_DEVICE_TYPE_ALL, 1, &device, &num_devices);
+    cl_device_id device_id;    // device ID
+    cl_context context;        // context
+    cl_command_queue queue;    // command queue
+    cl_program program;        // program
+    cl_kernel kernel;          // kernel
 
-    printf("\n========================================================\n");
-    char device_name[256];
-    clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(device_name), device_name, NULL); // Name of device
-    printf("Device: %s\n", device_name);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error getting platform and device\n");
-        return 1;
-    }
+    // Find platforms and devices
+    OclPlatformProp *platforms = NULL;
+    cl_uint num_platforms;
 
-    // Create OpenCL context
-    context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error creating context\n");
-        return 1;
+    err = OclFindPlatforms((const OclPlatformProp **)&platforms, &num_platforms);
+    CHECK_ERR(err, "OclFindPlatforms");
+
+    // Get the ID for the specified kind of device type.
+    cl_device_type device_type;
+    if (strcmp(argv[1], "gpu") == 0) {
+        device_type = OCL_DEVICE_TYPE;
+    } else { //default cpu
+        device_type = CL_DEVICE_TYPE_CPU;
     }
 
-    // Create command queue
-    queue = clCreateCommandQueue(context, device, 0, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error creating queue\n");
-        return 1;
-    }
+    err = OclGetDeviceWithFallback(&device_id, device_type);
+    CHECK_ERR(err, "OclGetDeviceWithFallback");
 
-    // Create memory buffer for output
+    // Create a context
+    //context = clCreateContext(); //@@ TODO: uncomment and add args
+    CHECK_ERR(err, "clCreateContext");
+
+    // Create a command queue
+    //queue = clCreateCommandQueueWithProperties(); //@@ TODO: uncomment and add args
+    CHECK_ERR(err, "clCreateCommandQueueWithProperties");
+
+    // Create the program from the source buffer
+    program = clCreateProgramWithSource(context, 1, (const char **)&kernelSrc, NULL, &err);
+    CHECK_ERR(err, "clCreateProgramWithSource");
+
+    // Build the program executable
+    //@@ Hint: program name is "renderColor"
+    // err = clBuildProgram(); //@@ TODO: uncomment and add args
+    CHECK_ERR(err, "clBuildProgram");
+
+    // Create the compute kernel in the program we wish to run
+    //@@ Hint: program name is "renderColor"
+    // kernel = clCreateKernel(); //@@ TODO: uncomment and add args
+    CHECK_ERR(err, "clCreateKernel");
+
     size_t pixel_size = IMG_SIZE * IMG_SIZE * 3 * sizeof(unsigned char);
     unsigned char pixels_h[IMG_SIZE * IMG_SIZE * 3];
 
-    cl_mem pixels_d = clCreateBuffer(context, CL_MEM_WRITE_ONLY, pixel_size, NULL, &err);
+    cl_float half_height = tan(FOV * 0.5);
+
+    // cl_mem pixels_d = clCreateBuffer(); //@@ TODO: uncomment and add args
     if (err != CL_SUCCESS) {
         fprintf(stderr, "Error creating pixels_d\n");
     }
 
-    // Read kernel and instantiate it
-    FILE* fp;
-    char* kernelSrc;
-    size_t kernelSize;
-
-    fp = fopen("kernel.cl", "rb");
-
-    if (!fp) {
-        printf("Error reading kernel");
-        exit(-1);
-    }
-
-    fseek(fp, 0, SEEK_END);
-    kernelSize = ftell(fp);
-    rewind(fp);
-
-    // Allocate memory to read in source of kernel
-    kernelSrc = (char*)malloc(kernelSize + 1);
-    fread(kernelSrc, sizeof(char), kernelSize, fp);
-    kernelSrc[kernelSize] = '\0';
-    fclose(fp);
-
-    // Create program now that we have kernel source
-    program = clCreateProgramWithSource(context, 1, (const char**)&kernelSrc, NULL, &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error creating program\n");
-    }
-
-    // Build program
-    err = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-
-    if (err != CL_SUCCESS) {
-        char *buff_erro;
-        cl_int errcode;
-        size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
-        if (errcode) {
-            printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
-            exit(-1);
-        }
-
-        buff_erro = malloc(build_log_len);
-        if (!buff_erro) {
-            printf("malloc failed at line %d\n", __LINE__);
-            exit(-2);
-        }
-
-        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
-        if (errcode) {
-            printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
-            exit(-3);
-        }
-
-        fprintf(stderr,"Build log: \n%s\n", buff_erro); //Be careful with  the fprint
-        free(buff_erro);
-        fprintf(stderr,"clBuildProgram failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Build kernel
-    kernel = clCreateKernel(program, "renderColor", &err);
-    if (err != CL_SUCCESS) {
-        fprintf(stderr, "Error creating kernel\n");
-    }
-
-
-    cl_float half_height = tan(FOV * 0.5);
-
     // Set kernel arguments
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &pixels_d);
+    // err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &pixels_d); //@@ TODO: uncomment
     err |= clSetKernelArg(kernel, 1, sizeof(cl_int), &IMG_SIZE);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_float), &half_height);
     if (err != CL_SUCCESS) {
@@ -158,30 +112,26 @@ int main(int argc, char *argv[]) {
     }
 
     // Execute kernel on data
-    err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &GLOBAL_SIZE, &LOCAL_SIZE, 0, NULL, NULL);
+    // err = clEnqueueNDRangeKernel(); //@@ TODO: uncomment and add args
 
     // Wait for kernel to finish
-    clFinish(queue);
+    //clFinish(); //@@ TODO: uncomment and add args
 
     // Read pixels results from device
-    clEnqueueReadBuffer(queue, pixels_d, CL_TRUE, 0, pixel_size, pixels_h, 0, NULL, NULL);
+    //clEnqueueReadBuffer(); //@@ TODO: uncomment and add args
 
     // Save the result to a PNG file
-    char* out_img_name;
-    if (device_choice == 0) {
-        out_img_name = "output_gpu.png";
-    } else {
-        out_img_name = "output_cpu.png";
-    }
+    char out_img_name[256];
+    snprintf(out_img_name, sizeof(out_img_name),  "output_%s.png", OclDeviceTypeString(device_type));
+
     stbi_write_png(out_img_name, IMG_SIZE, IMG_SIZE, 3, pixels_h, IMG_SIZE * 3);
 
-    // Release OpenCL resources
-    clReleaseMemObject(pixels_d);
-
-    clReleaseKernel(kernel);
-    clReleaseProgram(program);
-    clReleaseCommandQueue(queue);
-    clReleaseContext(context);
+    //@@ TODO: Release OpenCL resources
+    //clReleaseMemObject(); //@@ TODO: uncomment and add args
+    //clReleaseKernel(); //@@ TODO: uncomment and add args
+    //clReleaseProgram(); //@@ TODO: uncomment and add args
+    //clReleaseCommandQueue(); //@@ TODO: uncomment and add args
+    //clReleaseContext(); //@@ TODO: uncomment and add args
 
 
     // Free memory allocated to kernel source

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -O2 -std=c99
+CFLAGS = -O0 -std=c99
 MATHFLAG = -lm
 
 all: raytracer_sequential
