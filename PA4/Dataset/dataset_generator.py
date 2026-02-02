@@ -26,7 +26,7 @@ def generate_input_files(folder_path: str, input_idx: int, size: Tuple[int, int]
         for _ in range(rows):
             input_values.append([])
             for _ in range(cols):
-                value = random.randint(-100, 100)
+                value = random.randint(-256, 256)
                 input_values[-1].append(value)
                 file.write(f"{value} ")
             file.write("\n")

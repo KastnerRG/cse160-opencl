@@ -24,6 +24,8 @@ void OpenCLMatrixMultiply(Matrix *input0, Matrix *input1, Matrix *result)
 
     cl_int err;
 
+    int platform_id;           // platform ID
+    int device_index;          // Device index in platform
     cl_device_id device_id;    // device ID
     cl_context context;        // context
     cl_command_queue queue;    // command queue
@@ -37,9 +39,12 @@ void OpenCLMatrixMultiply(Matrix *input0, Matrix *input1, Matrix *result)
     err = OclFindPlatforms((const OclPlatformProp **)&platforms, &num_platforms);
     CHECK_ERR(err, "OclFindPlatforms");
 
-    // Get the ID for the specified kind of device type.
-    err = OclGetDeviceWithFallback(&device_id, OCL_DEVICE_TYPE);
+    err = OclGetDeviceInfoWithFallback(&device_id, &platform_id, &device_index, OCL_DEVICE_TYPE);
     CHECK_ERR(err, "OclGetDeviceWithFallback");
+
+    //@@ Hint, it may help to swap things based on the platform being used
+    // as there maybe many devices that get tested for this PA
+    printf("Running with %s: %s\n", platforms[platform_id].name, platforms[platform_id].devices[device_index].name);
 
     // Create a context
     context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
