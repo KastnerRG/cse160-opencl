@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from subprocess import Popen, PIPE
 from typing import List
@@ -35,6 +35,10 @@ class NVProfBase(ProfBase, ABC):
             time += curr_time
 
         return time
+    
+    @abstractmethod
+    def profile(self) -> List[str]:
+        raise NotImplementedError
     
 class NVProfExecutable(NVProfBase):
     def __init__(self, args: List[str]) -> None:
