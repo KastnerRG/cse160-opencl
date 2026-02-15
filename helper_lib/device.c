@@ -136,6 +136,14 @@ cl_int OclGetDeviceInfoWithFallback(cl_device_id* device_id, int* platform_index
         for (int i = 0; i < num_platforms; i++) {
             for (int j = 0; j < platforms[i].num_devices; j++) {
                 if (*platforms[i].devices[j].type == device_type) {
+                    if (
+                        *platform_index != -1 &&
+                        *device_index != -1 &&
+                        strcmp(platforms[i].name, "Portable Computing Language") == 0) {
+                        // Skip pocl devices if we already found a non-pocl device
+                        continue;
+                    }
+
                     *platform_index = i;
                     *device_index = j;
                 }

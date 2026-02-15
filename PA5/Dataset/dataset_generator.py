@@ -21,7 +21,7 @@ matrix_sizes_without_stride = [
     ((48, 1024), (5, 5), [1]),
     ((512, 512), (7, 7), [1]), 
     ((1024, 1025), (17, 17), [1]),
-    ((2048, 2048), (15, 15), [1]),
+    ((2048, 2048), (12, 12), [1]),
 ]
 
 # with stride
@@ -41,7 +41,7 @@ matrix_sizes_with_stride = [
     ((48, 1024), (5, 5), [1,2,4]),
     ((512, 512), (7, 7), [1,2,4]), 
     ((1024, 1025), (17, 17), [1,2,4]),
-    ((2048, 2048), (15, 15), [1,2,4]),
+    ((2048, 2048), (12, 12), [1,2,4]),
 ]
 
 def compute_output_size(input_size: Tuple[int, int], kernel_size: Tuple[int, int], stride: int) -> Tuple[int, int]:
@@ -73,6 +73,7 @@ def generate_datasets(use_strides: bool = False):
         )
         tmp = (tmp + np.rot90(tmp, 2)) // 2
         kernels.append(tmp)
+
 
     counter = 0
 

@@ -37,6 +37,10 @@ void OpenCLConvolution2D(Image *input0, Matrix *input1, Image *result, int strid
     cl_program program;        // program
     cl_kernel kernel;          // kernel
 
+    int platform_index, device_index;
+
+    char* kernel_name;
+
     // Find platforms and devices
     OclPlatformProp *platforms = NULL;
     cl_uint num_platforms;
@@ -44,16 +48,24 @@ void OpenCLConvolution2D(Image *input0, Matrix *input1, Image *result, int strid
     err = OclFindPlatforms((const OclPlatformProp **)&platforms, &num_platforms);
     CHECK_ERR(err, "OclFindPlatforms");
 
-    // Get the ID for the specified kind of device type.
-    err = OclGetDeviceWithFallback(&device_id, OCL_DEVICE_TYPE);
+    err = OclGetDeviceInfoWithFallback(&device_id, &platform_index, &device_index, OCL_DEVICE_TYPE);
     CHECK_ERR(err, "OclGetDeviceWithFallback");
+
+    if (*platforms[platform_index].devices[device_index].type == CL_DEVICE_TYPE_GPU)
+        kernel_name = "convolution2D_gpu";
+    else if (*platforms[platform_index].devices[device_index].type == CL_DEVICE_TYPE_CPU)
+        kernel_name = "convolution2D_cpu";
 
     // Create a context
     context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
     CHECK_ERR(err, "clCreateContext");
 
     // Create a command queue
+# if __APPLE__
+    queue = clCreateCommandQueue(context, device_id, 0, &err);
+# else
     queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+# endif
     CHECK_ERR(err, "clCreateCommandQueueWithProperties");
 
     // Create the program from the source buffer
@@ -65,16 +77,20 @@ void OpenCLConvolution2D(Image *input0, Matrix *input1, Image *result, int strid
     CHECK_ERR(err, "clBuildProgram");
 
     // Create the compute kernel in the program we wish to run
-    kernel = clCreateKernel(program, "convolution2D", &err);
+    kernel = clCreateKernel(program, kernel_name, &err);
     CHECK_ERR(err, "clCreateKernel");
 
     //@@ Allocate GPU memory here
+    // Create memory buffers for input and output vectors
+
 
     //@@ Copy memory to the GPU here
+    // Copy input vectors to memory buffers
+
 
     // Set the arguments to our compute kernel
     // __global float * inputData, __global float * outputData, __constant float * maskData,
-    // int width, int height, int maskWidth,  int imageChannels
+    // int width, int height, int maskWidth,  int imageChannels, int stride
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &device_a);
     CHECK_ERR(err, "clSetKernelArg 0");
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &device_c);
@@ -93,20 +109,17 @@ void OpenCLConvolution2D(Image *input0, Matrix *input1, Image *result, int strid
     err |= clSetKernelArg(kernel, 7, sizeof(unsigned int), &stride);
     CHECK_ERR(err, "clSetKernelArg 7");
 
-    // Compute the output dim 
     // @@ define local and global work sizes
     // Execute the OpenCL kernel on the list
-    
-    
-    //@@ Launch the GPU Kernel here
-    // Execute the OpenCL kernel on the array
 
 
     //@@ Copy the GPU memory back to the CPU here
     // Read the memory buffer output_mem_obj to the local variable result
-    
+
+
     //@@ Free the GPU memory here
     // Release OpenCL resources
+
 }
 
 int main(int argc, char *argv[])
@@ -133,13 +146,14 @@ int main(int argc, char *argv[])
     
     cl_int err;
 
+    printf("input_file_a: %s\n", input_file_a);
     err = LoadImgRaw(input_file_a, &host_a);
     CHECK_ERR(err, "LoadImg");
 
+    printf("input_file_b: %s\n", input_file_b);
     err = LoadMatrix(input_file_b, &host_b);
     CHECK_ERR(err, "LoadMatrix");
-
-    // err = LoadImgTmp(input_file_c, &answer);
+    
     err = LoadImgRaw(input_file_c, &answer);
     CHECK_ERR(err, "LoadImg");
 
@@ -150,13 +164,13 @@ int main(int argc, char *argv[])
     int rows, cols;
     //@@ Update these values for the output rows and cols of the output
     //@@ Do not use the results from the answer image
-    
-    
+
     // Allocate the memory for the target.
     host_c.shape[0] = rows;
     host_c.shape[1] = cols;
     host_c.data = (int *)malloc(sizeof(int) * host_c.shape[0] * host_c.shape[1] * IMAGE_CHANNELS);
 
+    printf("method call\n");
     OpenCLConvolution2D(&host_a, &host_b, &host_c, stride);
 
     // Save the image
