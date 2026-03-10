@@ -140,14 +140,15 @@ cl_int LoadStride(const char *dir, int *stride) {
     return CL_SUCCESS;
 }
 
+
 cl_int SaveImg(const char *path, Image* img)
 {
     int count = img->shape[0] * img->shape[1] * 3;
-    int* data = (unsigned char *)malloc(img->shape[0] * img->shape[1] * IMAGE_CHANNELS * sizeof(int));
+    unsigned char* data = (unsigned char *)malloc(img->shape[0] * img->shape[1] * IMAGE_CHANNELS * sizeof(char));
 
     for (int i = 0; i < count; i++)
     {
-        data[i] = img->data[i];
+        data[i] = img->data[i] * 255;
     }
 
     FILE *fp;
@@ -172,7 +173,7 @@ cl_int SaveImg(const char *path, Image* img)
     fprintf(fp, "%d\n", RGB_COMPONENT_COLOR);
 
     // pixel data
-    fwrite(data, sizeof(int), 3 * img->shape[0] * img->shape[1], fp);
+    fwrite(data, 3 * img->shape[0], img->shape[1], fp);
     fclose(fp);
 
     free(data);

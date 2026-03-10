@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE
 from typing import List, Dict, Any
 from prof_base import ProfBase
 import json
+import os
 
 class InterceptLayerProfBase(ProfBase, ABC):
     def __init__(self) -> None:
@@ -17,7 +18,7 @@ class InterceptLayerProfBase(ProfBase, ABC):
         student_kernel_events = [event for event in completed_events if not event.get("name").startswith("cl")]
 
         # Duration is in microseconds, convert to milliseconds
-        return sum(event.get("dur", 0.0) * 1.0E-3 for event in student_kernel_events)
+        return sum(event.get("dur", 0.0) * 1.0E-3 if not event.get("returncode", 0) else -1 for event in student_kernel_events)
     
     @abstractmethod
     def profile(self) -> List[Dict[str, Any]]:
@@ -30,17 +31,37 @@ class InterceptLayerProfExecutable(InterceptLayerProfBase):
         self._args = args
 
     def profile(self) -> List[Dict[str, Any]]:
-        process = Popen(["/bin/cliloader", "--dump-dir", ".", "-ckt"] + self._args, stderr=PIPE, text=True)
+        os.environ["timing_mode"] = "1"
+        process = Popen(["/bin/cliloader", "--dump-dir", ".", "-ckt"] + self._args,  text=True)
         process.wait()
 
         clintercept_trace_path = Path("clintercept_trace.json")
         clintercept_report_path = Path("clintercept_report.txt")
 
         with clintercept_trace_path.open("r") as f:
-            json_object = json.loads(f.read())
+            s = f.read().strip()
 
-        clintercept_trace_path.unlink()
-        clintercept_report_path.unlink()
+        try:
+            json_object = json.loads(s)
+        except json.JSONDecodeError:
+
+            if not s.startswith("["):
+                s = "[" + s
+            s = s.rstrip()
+            while s and s[-1] in ",\n\r\t ":
+                s = s[:-1]
+            if not s.endswith("]"):
+                s = s + "]"
+            json_object = json.loads(s)
+
+        if clintercept_trace_path.exists():
+            clintercept_trace_path.unlink()
+
+        if clintercept_report_path.exists():
+            clintercept_report_path.unlink()
+
+        for event in json_object:
+            event["returncode"] = process.returncode
 
         return json_object
     

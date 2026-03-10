@@ -1,4 +1,4 @@
-m1
-m2
-*.sentinel
-*.o
+*.json
+todo.md
+output/
+*.png

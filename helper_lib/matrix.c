@@ -45,19 +45,24 @@ cl_int SaveMatrix(const char *path, Matrix *matrix)
     if (!data_file) // Error opening file
         return CL_INVALID_VALUE;
 
-    unsigned int rows = matrix->shape[0];
-    unsigned int cols = matrix->shape[1];
-    if (fprintf(data_file, "# (%u, %u)\n", rows, cols) < 0)
+    unsigned int cols = matrix->shape[0];
+    unsigned int rows = matrix->shape[1];
+    if (fprintf(data_file, "# (%u, %u)\n", cols, rows) < 0)
         return CL_INVALID_VALUE; // Error parsing dimensions
     
     for (int r = 0; r < rows; r++)
     {
         for (int c = 0; c < cols; c++)
         {
-            if (fprintf(data_file, "%d ", matrix->data[cols * r + c]) < -1)
+            if (fprintf(data_file, "%d ", matrix->data[rows * r + c]) < -1)
                 return CL_INVALID_VALUE; // Error parsing dimensions
         }
-        fprintf(data_file, "\n");
+
+        // Don't print a new line on the last row to match the solution format.
+        if ((r + 1) < rows)
+        {
+            fprintf(data_file, "\n");
+        }
     }
 
     fclose(data_file);

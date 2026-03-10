@@ -6,6 +6,7 @@ from typing import List
 from gpu import GPU
 from intercept_layer_prof import InterceptLayerProfExecutable
 from printer import ok, warning
+import os
 
 DEFAULT_SUPPORTED_GPU = "NVIDIA GeForce GTX 1080 Ti"
 
@@ -30,15 +31,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    os.environ["timing_mode"] = "1"
+
     if not args.no_warn:
         __check_gpu()
 
     runs: List[float] = []
-    for _ in range(args.num_runs):
+    for _ in range(int(args.num_runs)):
         prof = InterceptLayerProfExecutable(args.args)
         runs.append(prof())
 
-    execution_time = sum(runs) / args.num_runs
+    execution_time = sum(runs) / int(args.num_runs)
     if execution_time == 0:
         execution_time = -1
 
