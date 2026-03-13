@@ -1,0 +1,11 @@
+*.json
+todo.md
+output/
+*.png
+
+*.json
+todo.md
+output/
+*.png
+!Dataset/image/*.png
+!Dataset/audio/selected_bird_datasets/*.json
